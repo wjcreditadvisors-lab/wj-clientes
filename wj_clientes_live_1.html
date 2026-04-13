@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>WJ Credit Advisors — Clientes</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #C9A84C;
+    --gold-dim: #8A6A28;
+    --bg: #0E0E10;
+    --surface: #18181C;
+    --surface2: #222228;
+    --surface3: #2C2C34;
+    --border: rgba(201,168,76,0.15);
+    --border2: rgba(201,168,76,0.3);
+    --text: #F5F2EC;
+    --text2: #A09880;
+    --text3: #6A6456;
+    --red: #E05555;
+    --red-bg: rgba(224,85,85,0.12);
+    --amber: #D4882A;
+    --amber-bg: rgba(212,136,42,0.12);
+    --teal: #3ABFA0;
+    --teal-bg: rgba(58,191,160,0.10);
+    --blue: #5B9FE0;
+    --blue-bg: rgba(91,159,224,0.10);
+    --green: #6DB86A;
+    --green-bg: rgba(109,184,106,0.10);
+    --radius: 14px;
+    --radius-sm: 8px;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overscroll-behavior: none; }
+
+  /* LOADER */
+  .loader-screen {
+    position: fixed; inset: 0; background: var(--bg);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    z-index: 999; gap: 16px;
+  }
+  .loader-logo { width: 52px; height: 52px; background: linear-gradient(135deg, var(--gold), var(--gold-dim)); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-family: 'DM Mono', monospace; font-size: 18px; font-weight: 500; color: #0E0E10; }
+  .loader-text { font-size: 14px; color: var(--text3); }
+  .loader-bar { width: 120px; height: 2px; background: var(--surface3); border-radius: 2px; overflow: hidden; }
+  .loader-fill { height: 100%; background: var(--gold); border-radius: 2px; animation: loading 1.4s ease-in-out infinite; }
+  @keyframes loading { 0% { width: 0; margin-left: 0; } 50% { width: 80px; margin-left: 20px; } 100% { width: 0; margin-left: 120px; } }
+
+  /* HEADER */
+  .header {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(14,14,16,0.93);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: calc(var(--safe-top) + 16px) 20px 16px;
+  }
+  .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .logo-mark { width: 34px; height: 34px; background: linear-gradient(135deg, var(--gold), var(--gold-dim)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500; color: #0E0E10; }
+  .logo-text { font-size: 15px; font-weight: 600; color: var(--text); letter-spacing: -0.3px; }
+  .logo-sub { font-size: 11px; color: var(--text3); }
+  .sync-btn { font-size: 12px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--border2); background: transparent; color: var(--gold); cursor: pointer; font-family: 'DM Sans', sans-serif; display: flex; align-items: center; gap: 5px; }
+  .sync-btn.spinning .sync-icon { display: inline-block; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px; }
+  .stat-pill { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 10px; text-align: center; }
+  .stat-pill .num { font-family: 'DM Mono', monospace; font-size: 18px; font-weight: 500; color: var(--gold); line-height: 1; }
+  .stat-pill .lbl { font-size: 10px; color: var(--text3); margin-top: 3px; line-height: 1.2; }
+
+  .filters-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; padding-bottom: 2px; }
+  .filters-scroll::-webkit-scrollbar { display: none; }
+  .filters { display: flex; gap: 6px; width: max-content; }
+  .f-btn { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; padding: 6px 14px; border-radius: 999px; border: 1px solid var(--surface3); background: var(--surface2); color: var(--text2); cursor: pointer; white-space: nowrap; transition: all 0.18s; }
+  .f-btn.active { background: var(--gold); color: #0E0E10; border-color: var(--gold); font-weight: 600; }
+
+  /* CONTENT */
+  .content { padding: 16px 20px calc(var(--safe-bottom) + 80px); }
+  .section-header { display: flex; align-items: center; gap: 8px; margin: 20px 0 10px; }
+  .section-label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text3); }
+  .section-line { flex: 1; height: 1px; background: var(--surface3); }
+  .section-count { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text3); }
+
+  /* CARD */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden; }
+  .card:active { transform: scale(0.98); }
+  .card:hover { border-color: var(--border2); }
+  .card.done { opacity: 0.35; border-style: dashed; }
+  .card.done .card-name { text-decoration: line-through; }
+  .card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+  .card-name { font-size: 15px; font-weight: 500; color: var(--text); line-height: 1.3; flex: 1; }
+  .pri-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+  .pri-Urgente .pri-dot { background: var(--red); box-shadow: 0 0 8px var(--red); }
+  .pri-Alta .pri-dot { background: var(--amber); }
+  .pri-Normal .pri-dot { background: var(--text3); }
+  .card-task { font-size: 13px; color: var(--text2); line-height: 1.45; margin-bottom: 8px; }
+  .card-footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+  .bureau-tags { display: flex; gap: 5px; flex-wrap: wrap; }
+  .bureau-tag { font-family: 'DM Mono', monospace; font-size: 10px; padding: 2px 8px; border-radius: 4px; font-weight: 500; }
+  .tag-tu { background: rgba(91,159,224,0.15); color: #5B9FE0; }
+  .tag-ex { background: rgba(224,85,85,0.15); color: #E07070; }
+  .tag-eq { background: rgba(109,184,106,0.15); color: #6DB86A; }
+  .tag-other { background: var(--surface3); color: var(--text3); }
+  .cat-badge { font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 4px; letter-spacing: 0.04em; white-space: nowrap; }
+  .cat-Disputa { background: var(--blue-bg); color: var(--blue); }
+  .cat-Reinserción { background: var(--amber-bg); color: var(--amber); }
+  .cat-Reinsercion { background: var(--amber-bg); color: var(--amber); }
+  .cat-Evaluar-reporte { background: var(--teal-bg); color: var(--teal); }
+  .cat-Aplicación { background: var(--green-bg); color: var(--green); }
+  .cat-Aplicacion { background: var(--green-bg); color: var(--green); }
+  .cat-Seguimiento { background: var(--red-bg); color: var(--red); }
+  .gold-accent { width: 2px; position: absolute; left: 0; top: 0; bottom: 0; border-radius: 14px 0 0 14px; }
+  .pri-Urgente .gold-accent { background: var(--red); }
+  .pri-Alta .gold-accent { background: var(--amber); }
+  .pri-Normal .gold-accent { background: var(--surface3); }
+
+  /* MODAL */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; align-items: flex-end; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
+  .modal-overlay.open { display: flex; animation: fadeIn 0.2s ease; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .modal { background: var(--surface); border: 1px solid var(--border2); border-radius: 24px 24px 0 0; width: 100%; max-height: 80vh; overflow-y: auto; animation: slideUp 0.28s cubic-bezier(0.34,1.2,0.64,1); padding-bottom: calc(var(--safe-bottom) + 24px); }
+  @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .modal-handle { width: 36px; height: 4px; background: var(--surface3); border-radius: 2px; margin: 14px auto 0; }
+  .modal-header { padding: 20px 20px 16px; border-bottom: 1px solid var(--border); }
+  .modal-name { font-size: 20px; font-weight: 600; color: var(--text); margin-bottom: 8px; letter-spacing: -0.3px; }
+  .modal-badges { display: flex; gap: 6px; flex-wrap: wrap; }
+  .modal-body { padding: 20px; }
+  .detail-row { display: flex; flex-direction: column; gap: 4px; margin-bottom: 18px; }
+  .detail-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text3); }
+  .detail-value { font-size: 14px; color: var(--text); line-height: 1.5; }
+  .modal-actions { padding: 0 20px; display: flex; flex-direction: column; gap: 10px; }
+  .btn-done { width: 100%; padding: 16px; border-radius: var(--radius); border: none; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.18s; }
+  .btn-done.mark { background: var(--gold); color: #0E0E10; }
+  .btn-done.unmark { background: var(--surface3); color: var(--text2); }
+  .btn-done:active { transform: scale(0.97); }
+  .btn-done:disabled { opacity: 0.5; }
+  .btn-close { width: 100%; padding: 14px; border-radius: var(--radius); border: 1px solid var(--border); background: transparent; font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text2); cursor: pointer; }
+
+  /* DONE SECTION */
+  .done-toggle { display: flex; align-items: center; gap: 8px; margin: 24px 0 10px; cursor: pointer; color: var(--text3); font-size: 12px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; background: none; border: none; padding: 0; font-family: 'DM Sans', sans-serif; }
+  .done-toggle .arrow { transition: transform 0.2s; font-size: 10px; }
+  .done-toggle.open .arrow { transform: rotate(90deg); }
+  #done-section { display: none; }
+  #done-section.visible { display: block; }
+  .empty-state { text-align: center; padding: 40px 20px; color: var(--text3); font-size: 14px; }
+
+  /* TOAST */
+  .toast { position: fixed; bottom: calc(var(--safe-bottom) + 24px); left: 50%; transform: translateX(-50%) translateY(20px); background: var(--surface2); border: 1px solid var(--border2); border-radius: 999px; padding: 10px 20px; font-size: 13px; color: var(--text); opacity: 0; transition: all 0.3s; z-index: 300; white-space: nowrap; pointer-events: none; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="loader-screen" id="loader">
+  <div class="loader-logo">WJ</div>
+  <div class="loader-text">Cargando clientes...</div>
+  <div class="loader-bar"><div class="loader-fill"></div></div>
+</div>
+
+<div id="app" style="display:none">
+  <div class="header">
+    <div class="header-top">
+      <div class="logo">
+        <div class="logo-mark">WJ</div>
+        <div>
+          <div class="logo-text">WJ Credit Advisors</div>
+          <div class="logo-sub">Panel de clientes activos</div>
+        </div>
+      </div>
+      <button class="sync-btn" onclick="loadData()" id="sync-btn">
+        <span class="sync-icon">↻</span> Sync
+      </button>
+    </div>
+    <div class="stats-row">
+      <div class="stat-pill"><div class="num" id="s-total">—</div><div class="lbl">Total</div></div>
+      <div class="stat-pill"><div class="num" id="s-pending">—</div><div class="lbl">Pendientes</div></div>
+      <div class="stat-pill"><div class="num" id="s-urgent">—</div><div class="lbl">Urgentes</div></div>
+      <div class="stat-pill"><div class="num" id="s-done">—</div><div class="lbl">Listos</div></div>
+    </div>
+    <div class="filters-scroll">
+      <div class="filters">
+        <button class="f-btn active" onclick="setFilter('all',this)">Todos</button>
+        <button class="f-btn" onclick="setFilter('urgente',this)">🔴 Urgente</button>
+        <button class="f-btn" onclick="setFilter('Disputa',this)">Disputas</button>
+        <button class="f-btn" onclick="setFilter('Reinserción',this)">Reinserciones</button>
+        <button class="f-btn" onclick="setFilter('Evaluar reporte',this)">Evaluar</button>
+        <button class="f-btn" onclick="setFilter('Aplicación',this)">Aplicaciones</button>
+        <button class="f-btn" onclick="setFilter('Seguimiento',this)">Seguimiento</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="content" id="content"></div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-name" id="m-name"></div>
+      <div class="modal-badges" id="m-badges"></div>
+    </div>
+    <div class="modal-body">
+      <div class="detail-row">
+        <div class="detail-label">Tarea pendiente</div>
+        <div class="detail-value" id="m-task"></div>
+      </div>
+      <div class="detail-row">
+        <div class="detail-label">Burós involucrados</div>
+        <div class="detail-value" id="m-bureau"></div>
+      </div>
+      <div class="detail-row">
+        <div class="detail-label">Categoría</div>
+        <div class="detail-value" id="m-cat"></div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-done mark" id="btn-toggle-done" onclick="toggleDone()">✓ Marcar como listo</button>
+      <button class="btn-close" onclick="closeModal()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = 'https://script.google.com/macros/s/AKfycbziqCJCxSO6nsa0QUVm0v6WaL-LUitpeOO3OsnBC6V8eOVGuC6kEEYAa13Nn2EVq5QloQ/exec';
+
+const CAT_LABELS = { 'Disputa':'Disputa','Reinserción':'Reinserción','Reinsercion':'Reinserción','Evaluar reporte':'Evaluar reporte','Aplicación':'Aplicación','Aplicacion':'Aplicación','Seguimiento':'Seguimiento' };
+const CAT_CLASSES = { 'Disputa':'cat-Disputa','Reinserción':'cat-Reinserción','Reinsercion':'cat-Reinsercion','Evaluar reporte':'cat-Evaluar-reporte','Aplicación':'cat-Aplicación','Aplicacion':'cat-Aplicacion','Seguimiento':'cat-Seguimiento' };
+
+let clients = [];
+let currentFilter = 'all';
+let activeClient = null;
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+async function loadData() {
+  const btn = document.getElementById('sync-btn');
+  if (btn) btn.classList.add('spinning');
+  try {
+    const res = await fetch(API + '?action=get');
+    const data = await res.json();
+    clients = data.filter(r => r.Nombre && r.Nombre.toString().trim() !== '');
+    render();
+    document.getElementById('loader').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    if (btn) { btn.classList.remove('spinning'); showToast('Datos actualizados ✓'); }
+  } catch(e) {
+    document.getElementById('loader').innerHTML = '<div class="loader-logo">WJ</div><div class="loader-text" style="color:#E05555">Error cargando datos.<br>Verifica tu conexión.</div>';
+    if (btn) btn.classList.remove('spinning');
+  }
+}
+
+async function updateStatus(nombre, estado) {
+  const url = `${API}?action=update&nombre=${encodeURIComponent(nombre)}&estado=${encodeURIComponent(estado)}`;
+  await fetch(url);
+}
+
+function setFilter(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.f-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+
+function getBureauTags(bureau) {
+  if (!bureau || bureau === '—' || bureau.toString().includes('confirmar')) {
+    return `<span class="bureau-tag tag-other">${bureau || '—'}</span>`;
+  }
+  return bureau.toString().split('/').map(b => {
+    const t = b.trim().toUpperCase();
+    if (t.includes('TRANSUNION') || t === 'TU') return `<span class="bureau-tag tag-tu">TransUnion</span>`;
+    if (t.includes('EXPERIAN') || t === 'EX') return `<span class="bureau-tag tag-ex">Experian</span>`;
+    if (t.includes('EQUIFAX') || t === 'EQ') return `<span class="bureau-tag tag-eq">Equifax</span>`;
+    return `<span class="bureau-tag tag-other">${b.trim()}</span>`;
+  }).join('');
+}
+
+function getCatClass(cat) {
+  const c = cat ? cat.toString().trim() : '';
+  return CAT_CLASSES[c] || 'cat-Disputa';
+}
+
+function getCatLabel(cat) {
+  const c = cat ? cat.toString().trim() : '';
+  return CAT_LABELS[c] || c;
+}
+
+function render() {
+  const pending = clients.filter(c => c.Estado !== 'Listo ✓');
+  const done = clients.filter(c => c.Estado === 'Listo ✓');
+
+  let filtered = pending;
+  if (currentFilter === 'urgente') filtered = pending.filter(c => c.Prioridad === 'Urgente');
+  else if (currentFilter !== 'all') filtered = pending.filter(c => {
+    const cat = c.Categoría || c.Categoria || '';
+    return cat.toString().trim() === currentFilter ||
+      cat.toString().trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'') === currentFilter.normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  });
+
+  document.getElementById('s-total').textContent = clients.length;
+  document.getElementById('s-pending').textContent = pending.length;
+  document.getElementById('s-urgent').textContent = pending.filter(c => c.Prioridad === 'Urgente').length;
+  document.getElementById('s-done').textContent = done.length;
+
+  const urgente = filtered.filter(c => c.Prioridad === 'Urgente');
+  const alta = filtered.filter(c => c.Prioridad === 'Alta');
+  const normal = filtered.filter(c => c.Prioridad === 'Normal');
+
+  let html = '';
+
+  if (filtered.length === 0) {
+    html = `<div class="empty-state">No hay clientes pendientes en esta categoría 🎉</div>`;
+  }
+
+  const sections = [
+    { label:'Acción inmediata', items: urgente },
+    { label:'Prioridad alta', items: alta },
+    { label:'En proceso', items: normal }
+  ];
+
+  for (const s of sections) {
+    if (!s.items.length) continue;
+    html += `<div class="section-header">
+      <span class="section-label">${s.label}</span>
+      <span class="section-line"></span>
+      <span class="section-count">${s.items.length}</span>
+    </div>`;
+    for (const c of s.items) {
+      const cat = c.Categoría || c.Categoria || '';
+      const pri = c.Prioridad || 'Normal';
+      const idx = clients.indexOf(c);
+      html += `<div class="card pri-${pri}" onclick="openModal(${idx})">
+        <div class="gold-accent"></div>
+        <div class="card-top">
+          <div class="card-name">${c.Nombre}</div>
+          <div class="pri-dot"></div>
+        </div>
+        <div class="card-task">${c.Tarea || ''}</div>
+        <div class="card-footer">
+          <div class="bureau-tags">${getBureauTags(c.Buró || c.Buro || '')}</div>
+          <span class="cat-badge ${getCatClass(cat)}">${getCatLabel(cat)}</span>
+        </div>
+      </div>`;
+    }
+  }
+
+  if (done.length > 0) {
+    html += `<button class="done-toggle" id="done-toggle" onclick="toggleDoneSection()">
+      <span class="arrow">▶</span> Completados (${done.length})
+    </button>
+    <div id="done-section">`;
+    for (const c of done) {
+      const idx = clients.indexOf(c);
+      html += `<div class="card done pri-Normal" onclick="openModal(${idx})">
+        <div class="card-top"><div class="card-name">${c.Nombre}</div></div>
+        <div class="card-task">${c.Tarea || ''}</div>
+      </div>`;
+    }
+    html += `</div>`;
+  }
+
+  document.getElementById('content').innerHTML = html;
+}
+
+function toggleDoneSection() {
+  const sec = document.getElementById('done-section');
+  const btn = document.getElementById('done-toggle');
+  if (sec) sec.classList.toggle('visible');
+  if (btn) btn.classList.toggle('open');
+}
+
+function openModal(idx) {
+  activeClient = clients[idx];
+  if (!activeClient) return;
+  const isDone = activeClient.Estado === 'Listo ✓';
+  const cat = activeClient.Categoría || activeClient.Categoria || '';
+  const pri = activeClient.Prioridad || 'Normal';
+
+  document.getElementById('m-name').textContent = activeClient.Nombre;
+  document.getElementById('m-task').textContent = activeClient.Tarea || '—';
+  document.getElementById('m-bureau').textContent = activeClient.Buró || activeClient.Buro || '—';
+  document.getElementById('m-cat').textContent = getCatLabel(cat);
+
+  document.getElementById('m-badges').innerHTML = `
+    <span class="cat-badge ${getCatClass(cat)}">${getCatLabel(cat)}</span>
+    <span class="cat-badge ${isDone ? 'cat-Disputa' : (pri === 'Urgente' ? 'cat-Seguimiento' : pri === 'Alta' ? 'cat-Reinserción' : 'cat-Evaluar-reporte')}">${isDone ? 'Completado ✓' : pri}</span>
+  `;
+
+  const btn = document.getElementById('btn-toggle-done');
+  if (isDone) {
+    btn.textContent = 'Marcar como pendiente';
+    btn.className = 'btn-done unmark';
+  } else {
+    btn.textContent = '✓ Marcar como listo';
+    btn.className = 'btn-done mark';
+  }
+
+  document.getElementById('modal-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(e) {
+  if (e && e.target !== document.getElementById('modal-overlay')) return;
+  document.getElementById('modal-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+  activeClient = null;
+}
+
+async function toggleDone() {
+  if (!activeClient) return;
+  const btn = document.getElementById('btn-toggle-done');
+  btn.disabled = true;
+  btn.textContent = 'Guardando...';
+
+  const isDone = activeClient.Estado === 'Listo ✓';
+  const nuevoEstado = isDone ? 'Pendiente' : 'Listo ✓';
+
+  try {
+    await updateStatus(activeClient.Nombre, nuevoEstado);
+    activeClient.Estado = nuevoEstado;
+    showToast(isDone ? 'Marcado como pendiente' : '✓ Marcado como listo');
+  } catch(e) {
+    showToast('Error al guardar — intenta de nuevo');
+  }
+
+  document.getElementById('modal-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+  activeClient = null;
+  render();
+}
+
+loadData();
+</script>
+</body>
+</html>
