@@ -243,12 +243,32 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 2500);
 }
 
+function jsonp(url) {
+  return new Promise((resolve, reject) => {
+    const cbName = 'wjcb_' + Date.now();
+    const script = document.createElement('script');
+    const timeout = setTimeout(() => {
+      delete window[cbName];
+      if (script.parentNode) script.parentNode.removeChild(script);
+      reject(new Error('timeout'));
+    }, 10000);
+    window[cbName] = (data) => {
+      clearTimeout(timeout);
+      delete window[cbName];
+      if (script.parentNode) script.parentNode.removeChild(script);
+      resolve(data);
+    };
+    script.src = url + '&callback=' + cbName;
+    script.onerror = () => { clearTimeout(timeout); reject(new Error('error')); };
+    document.body.appendChild(script);
+  });
+}
+
 async function loadData() {
   const btn = document.getElementById('sync-btn');
   if (btn) btn.classList.add('spinning');
   try {
-    const res = await fetch(API + '?action=get');
-    const data = await res.json();
+    const data = await jsonp(API + '?action=get');
     clients = data.filter(r => r.Nombre && r.Nombre.toString().trim() !== '');
     render();
     document.getElementById('loader').style.display = 'none';
@@ -261,8 +281,7 @@ async function loadData() {
 }
 
 async function updateStatus(nombre, estado) {
-  const url = `${API}?action=update&nombre=${encodeURIComponent(nombre)}&estado=${encodeURIComponent(estado)}`;
-  await fetch(url);
+  await jsonp(`${API}?action=update&nombre=${encodeURIComponent(nombre)}&estado=${encodeURIComponent(estado)}`);
 }
 
 function setFilter(f, btn) {
